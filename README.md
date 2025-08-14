@@ -57,7 +57,9 @@ opencv, tensorflow, yolo로 cctv 영상에서 사람을 탐지하는 기술을 �
 <summary>08.14(목)</summary> 
 
 # 진행상황
-[피드백 진행중](feedback/0814.md)
+- [피드백 진행완료](feedback/0814.md)
+- 해결책 설계 고민중
+
 
 # 하드웨어
 - 데스크탑
