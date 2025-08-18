@@ -75,3 +75,11 @@ YOLO11 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 실시간 탐지 + 로그 → 콘솔에 "침입 감지!" 출력
 사후 확인 시스템 → 저장된 이미지 폴더 확인
 </details>
+
+<details>
+<summary>08.18(월)</summary>
+
+# 진행상황
+
+- [피드백 진행완료](feedback/0818.md)
+</details>
