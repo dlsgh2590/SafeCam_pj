@@ -1,8 +1,10 @@
 # 3단계: 움직임 감지 (사각형 안만)
+# + 영상에서 언제 저장된 사진인지 확인하기 위해 시간 추가
 
 import cv2
 import os
 from ultralytics import YOLO
+from datetime import timedelta  # 시간 포맷을 위해 사용
 
 # YOLO11 모델 불러오기 (COCO pretrained)
 model = YOLO('../yolo11n.pt')  # 저번 수업때 썻던 커스텀yolo 불러옴
@@ -64,8 +66,30 @@ while cap.isOpened():
     # 탐지 시 이미지 저장
     if detected:
         print("침입 감지!")
-        filename = f'filtered_frames/frame_{save_count}.jpg'
+
+        # 현재 시간(ms) → HH:MM:SS 포맷으로 변환
+        current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
+        time_str = str(timedelta(milliseconds=current_time_ms)).split('.')[0]  # HH:MM:SS
+        time_text = f'Time: {time_str}'
+
+        # 위험구역 사각형 그리기
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+
+        # 오른쪽 하단 텍스트 위치 계산
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 1
+        thickness = 2
+        (text_width, text_height), _ = cv2.getTextSize(time_text, font, scale, thickness)
+
+        margin = 10
+        text_x = frame.shape[1] - text_width - margin
+        text_y = frame.shape[0] - margin
+
+        # 시간 텍스트 추가
+        cv2.putText(frame, time_text, (text_x, text_y), font, scale, (0, 255, 255), thickness, cv2.LINE_AA)
+
+        # 이미지 저장 (파일명에 시간 포함)
+        filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
         cv2.imwrite(filename, frame)
         print(f"→ 저장됨: {filename}")
         save_count += 1
