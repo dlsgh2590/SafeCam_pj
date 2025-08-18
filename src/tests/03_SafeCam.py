@@ -43,7 +43,7 @@ while cap.isOpened():
         break
 
     # YOLO로 객체 탐지
-    results = model(frame)[0]
+    results = model(frame, verbose=False)[0]
 
     detected = False
 
@@ -65,7 +65,7 @@ while cap.isOpened():
 
     # 탐지 시 이미지 저장
     if detected:
-        print("침입 감지!")
+        # print("침입 감지!")
 
         # 현재 시간(ms) → HH:MM:SS 포맷으로 변환
         current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
@@ -91,7 +91,7 @@ while cap.isOpened():
         # 이미지 저장 (파일명에 시간 포함)
         filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
         cv2.imwrite(filename, frame)
-        print(f"→ 저장됨: {filename}")
+        # print(f"→ 저장됨: {filename}")
         save_count += 1
 
     frame_count += 1
