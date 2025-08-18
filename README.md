@@ -82,4 +82,7 @@ YOLO11 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 # 진행상황
 
 - [피드백 진행완료](feedback/0818.md)
+
+- 저장되는 이미지에 시간 확인 기능 추가
+- yolo로그 출력 메시지 차단
 </details>
