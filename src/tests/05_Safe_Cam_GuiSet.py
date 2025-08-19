@@ -94,10 +94,16 @@ while cap.isOpened():
             cls = int(box.cls[0])
             label = model.names[cls]
 
-            x1_box, y1_box, x2_box, y2_box = box.xyxy[0]
+            x1_box, y1_box, x2_box, y2_box = map(int, box.xyxy[0])
             cx = int((x1_box + x2_box) / 2)
             cy = int((y1_box + y2_box) / 2)
 
+            # 객체 정보 박스 그리기 (전체 표시)
+            cv2.rectangle(frame, (x1_box, y1_box), (x2_box, y2_box), (255, 255, 0), 2)
+            cv2.putText(frame, label, (x1_box, y1_box - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+
+            # 위험구역 내 판단
             if x1 <= cx <= x2 and y1 <= cy <= y2:
                 if label in ['person', 'motorbike']:
                     person_motorbike_in_zone = True
