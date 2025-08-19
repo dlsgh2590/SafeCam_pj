@@ -70,6 +70,10 @@ yolo_interval = 3  # 몇 프레임마다 YOLO 실행할지 설정
 frame_count = 0  # 프레임 번호
 save_count = 0  # 저장된 사진 번호
 
+# 실시간 경고 상태를 유지하기 위한 변수 추가
+last_alert_time = 0
+alert_duration = 30  # YOLO 간격과 별도로, 몇 프레임 동안 경고 문구 유지할지
+
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
@@ -80,6 +84,7 @@ while cap.isOpened():
     person_motorbike_in_zone = False
     construction_vehicle_in_zone = False 
 
+    # YOLO 실행 주기 맞을 때만 탐지
     if frame_count % yolo_interval == 0:
         results = model(frame, verbose=False)[0]  # 물체 찾기
 
@@ -97,26 +102,30 @@ while cap.isOpened():
                 elif label in ['truck', 'trailer', 'bus', 'construction vehicle', 'car']:
                     construction_vehicle_in_zone = True
 
+        # 위험 침입 + 건설차량 없음일 때만 저장 & 빨간 사각형 표시
         if person_motorbike_in_zone and not construction_vehicle_in_zone:
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # 빨간 네모
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
             current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
             time_str = str(timedelta(milliseconds=current_time_ms)).split('.')[0]
-            time_text = f'Time: {time_str}'
 
             cv2.putText(frame, "Intrusion Detected", (30, 80),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            cv2.putText(frame, time_text, (30, 40),
+            cv2.putText(frame, f'Time: {time_str}', (30, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
             filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
-            cv2.imwrite(filename, frame)  # 사진 저장
+            cv2.imwrite(filename, frame)
             print(f"[Alert] Intrusion detected - photo saved: {filename}")
             save_count += 1
 
-    if person_motorbike_in_zone and not construction_vehicle_in_zone:
+            # 탐지 시점 기록 (경고 표시 유지하기 위함)
+            last_alert_time = frame_count
+
+    # 실시간 경고문구 표시 (탐지 후 일정 프레임 동안 유지)
+    if frame_count - last_alert_time <= alert_duration:
         cv2.putText(frame, "Warning! Intruder detected", (30, 120),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)  # 경고 문구
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
     cv2.imshow("Live Detection", frame)  # 화면 보여주기
 
@@ -124,7 +133,6 @@ while cap.isOpened():
         break
 
     frame_count += 1  # 다음 프레임
-
 
 cap.release()
 cv2.destroyAllWindows()
