@@ -25,33 +25,37 @@ if not ret:
     print("영상 로딩 실패")
     exit()
 
-# 위험구역 설정 변수
-drawing = False
-ix, iy = -1, -1
-x1, y1, x2, y2 = 0, 0, 0, 0
+# 위험구역 그리기 위한 변수들 준비
+drawing = False  # 마우스 드래그 상태 확인
+ix, iy = -1, -1  # 드래그 시작점 좌표
+x1, y1, x2, y2 = 0, 0, 0, 0  # 위험구역 좌상단, 우하단 좌표
 
+# 마우스로 사각형 그리기 함수
 def draw_rectangle(event, x, y, flags, param):
     global drawing, ix, iy, x1, y1, x2, y2, frame
-    if event == cv2.EVENT_LBUTTONDOWN:
+    if event == cv2.EVENT_LBUTTONDOWN:  # 마우스 왼쪽 버튼 누름
         drawing = True
-        ix, iy = x, y
-    elif event == cv2.EVENT_MOUSEMOVE:
+        ix, iy = x, y  # 시작 위치 저장
+    elif event == cv2.EVENT_MOUSEMOVE:  # 마우스 움직임
         if drawing:
-            temp_frame = frame.copy()
-            cv2.rectangle(temp_frame, (ix, iy), (x, y), (0, 255, 0), 2)
-            cv2.imshow("Set Danger Zone", temp_frame)
-    elif event == cv2.EVENT_LBUTTONUP:
+            temp_frame = frame.copy()  # 원본 복사
+            cv2.rectangle(temp_frame, (ix, iy), (x, y), (0, 255, 0), 2)  # 초록색 사각형 그리기
+            cv2.imshow("Set Danger Zone", temp_frame)  # 화면에 보여주기
+    elif event == cv2.EVENT_LBUTTONUP:  # 마우스 왼쪽 버튼 뗌
         drawing = False
+        # 사각형 좌표 계산 (왼쪽 위, 오른쪽 아래)
         x1, y1 = min(ix, x), min(iy, y)
         x2, y2 = max(ix, x), max(iy, y)
+        # 빨간색 사각형으로 위험구역 표시
         cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         cv2.imshow("Set Danger Zone", frame)
 
-# 위험구역 설정 GUI
+# 위험구역 설정 화면 만들기
 cv2.namedWindow("Set Danger Zone")
 cv2.setMouseCallback("Set Danger Zone", draw_rectangle)
-print("▶ 위험구역을 마우스로 드래그하고 's' 키를 눌러 시작하세요.")
+print("마우스로 위험구역을 드래그해서 지정하고 's' 키를 누르세요.")
 
+# 위험구역 지정할 때까지 계속 화면 보여주기
 while True:
     cv2.imshow("Set Danger Zone", frame)
     if cv2.waitKey(1) == ord('s'):
@@ -62,65 +66,70 @@ cv2.destroyWindow("Set Danger Zone")
 # 영상 처음부터 다시 시작
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-yolo_interval = 3
-frame_count = 0
-save_count = 0
+yolo_interval = 3  # 몇 프레임마다 YOLO 실행할지 설정
+frame_count = 0  # 프레임 번호
+save_count = 0  # 저장된 사진 번호
 
 while cap.isOpened():
     ret, frame = cap.read()
     if not ret:
         break
 
-    # 기본 초록색 위험구역 사각형
+    # 위험구역 사각형 초록색으로 표시
     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    person_motorbike_in_zone = False
-    construction_vehicle_in_zone = False
+    person_motorbike_in_zone = False  # 사람 또는 오토바이 위험구역 안 있는지 여부
+    construction_vehicle_in_zone = False  # 건설 차량 위험구역 안 있는지 여부
 
     if frame_count % yolo_interval == 0:
         results = model(frame, verbose=False)[0]
 
+        # YOLO가 찾은 물체들을 하나씩 확인
         for box in results.boxes:
-            cls = int(box.cls[0])
-            label = model.names[cls]
+            cls = int(box.cls[0])  # 물체 클래스 번호
+            label = model.names[cls]  # 물체 이름
 
             x1_box, y1_box, x2_box, y2_box = box.xyxy[0]
-            cx = int((x1_box + x2_box) / 2)
-            cy = int((y1_box + y2_box) / 2)
+            cx = int((x1_box + x2_box) / 2)  # 물체 중심 x 좌표
+            cy = int((y1_box + y2_box) / 2)  # 물체 중심 y 좌표
 
-            # 위험구역 안에 객체가 있는지 체크
+            # 위험구역 안에 물체 중심이 들어왔는지 확인
             if x1 <= cx <= x2 and y1 <= cy <= y2:
                 if label in ['person', 'motorbike']:
                     person_motorbike_in_zone = True
+                # 트럭, 트레일러, 버스 등 건설 현장 차량 포함
                 elif label in ['truck', 'trailer', 'bus', 'construction vehicle', 'car']:
                     construction_vehicle_in_zone = True
 
-        # 사람 또는 오토바이가 위험구역에 있으면 바로 저장 (건설차량 없을 때만)
+        # 사람이거나 오토바이가 위험구역에 있으면 (건설차량 없을 때만)
         if person_motorbike_in_zone and not construction_vehicle_in_zone:
-            # 빨간색 사각형 표시
+            # 위험구역 사각형 빨간색으로 바꾸기
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
 
-            # 시간 텍스트 표시
+            # 영상 현재 시간 구하기
             current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
             time_str = str(timedelta(milliseconds=current_time_ms)).split('.')[0]
-            time_text = f'Time: {time_str}'
-            cv2.putText(frame, "침입 감지", (30, 80),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
-            cv2.putText(frame, time_text, (30, 40),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2, cv2.LINE_AA)
+            time_text = f'시간: {time_str}'
 
-            # 이미지 저장
+            # 화면에 침입 감지 메시지 보여주기
+            cv2.putText(frame, "침입 감지", (30, 80),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+            cv2.putText(frame, time_text, (30, 40),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+
+            # 현재 프레임 사진 저장하기
             filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
             cv2.imwrite(filename, frame)
-            print(f"[!] 침입 감지: {filename}")
+            print(f"[알림] 침입 감지 - 사진 저장됨: {filename}")
             save_count += 1
 
+    # 영상 화면 보여주기
     cv2.imshow("Live Detection", frame)
-    if cv2.waitKey(1) & 0xFF == 27:
+    if cv2.waitKey(1) & 0xFF == 27:  # ESC 키 누르면 종료
         break
 
     frame_count += 1
 
 cap.release()
 cv2.destroyAllWindows()
-print("완료: 감지 및 실시간 모니터링 종료.")
+print("모니터링이 종료되었습니다.")
