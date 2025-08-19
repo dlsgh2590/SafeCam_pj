@@ -75,60 +75,56 @@ while cap.isOpened():
     if not ret:
         break
 
-    # 위험구역 사각형 초록색으로 표시
-    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # 초록 위험구역 표시
 
-    person_motorbike_in_zone = False  # 사람 또는 오토바이 위험구역 안 있는지 여부
-    construction_vehicle_in_zone = False  # 건설 차량 위험구역 안 있는지 여부
+    person_motorbike_in_zone = False
+    construction_vehicle_in_zone = False 
 
     if frame_count % yolo_interval == 0:
-        results = model(frame, verbose=False)[0]
+        results = model(frame, verbose=False)[0]  # 물체 찾기
 
-        # YOLO가 찾은 물체들을 하나씩 확인
         for box in results.boxes:
-            cls = int(box.cls[0])  # 물체 클래스 번호
-            label = model.names[cls]  # 물체 이름
+            cls = int(box.cls[0])
+            label = model.names[cls]
 
             x1_box, y1_box, x2_box, y2_box = box.xyxy[0]
-            cx = int((x1_box + x2_box) / 2)  # 물체 중심 x 좌표
-            cy = int((y1_box + y2_box) / 2)  # 물체 중심 y 좌표
+            cx = int((x1_box + x2_box) / 2)
+            cy = int((y1_box + y2_box) / 2)
 
-            # 위험구역 안에 물체 중심이 들어왔는지 확인
             if x1 <= cx <= x2 and y1 <= cy <= y2:
                 if label in ['person', 'motorbike']:
                     person_motorbike_in_zone = True
-                # 트럭, 트레일러, 버스 등 건설 현장 차량 포함
                 elif label in ['truck', 'trailer', 'bus', 'construction vehicle', 'car']:
                     construction_vehicle_in_zone = True
 
-        # 사람이거나 오토바이가 위험구역에 있으면 (건설차량 없을 때만)
         if person_motorbike_in_zone and not construction_vehicle_in_zone:
-            # 위험구역 사각형 빨간색으로 바꾸기
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)  # 빨간 네모
 
-            # 영상 현재 시간 구하기
             current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
             time_str = str(timedelta(milliseconds=current_time_ms)).split('.')[0]
-            time_text = f'시간: {time_str}'
+            time_text = f'Time: {time_str}'
 
-            # 화면에 침입 감지 메시지 보여주기
-            cv2.putText(frame, "침입 감지", (30, 80),
+            cv2.putText(frame, "Intrusion Detected", (30, 80),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
             cv2.putText(frame, time_text, (30, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-            # 현재 프레임 사진 저장하기
             filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
-            cv2.imwrite(filename, frame)
-            print(f"[알림] 침입 감지 - 사진 저장됨: {filename}")
+            cv2.imwrite(filename, frame)  # 사진 저장
+            print(f"[Alert] Intrusion detected - photo saved: {filename}")
             save_count += 1
 
-    # 영상 화면 보여주기
-    cv2.imshow("Live Detection", frame)
-    if cv2.waitKey(1) & 0xFF == 27:  # ESC 키 누르면 종료
+    if person_motorbike_in_zone and not construction_vehicle_in_zone:
+        cv2.putText(frame, "Warning! Intruder detected", (30, 120),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)  # 경고 문구
+
+    cv2.imshow("Live Detection", frame)  # 화면 보여주기
+
+    if cv2.waitKey(1) & 0xFF == 27:  # ESC 누르면 종료
         break
 
-    frame_count += 1
+    frame_count += 1  # 다음 프레임
+
 
 cap.release()
 cv2.destroyAllWindows()
