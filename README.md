@@ -86,3 +86,13 @@ YOLO11 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 - 저장되는 이미지에 시간 확인 기능 추가
 - yolo로그 출력 메시지 차단
 </details>
+
+<details>
+<summary>08.19(화)</summary>
+
+# 진행상황
+
+- [피드백 진행완료](feedback/0819.md)
+
+- GUI창 띄워서 마우스 드래그로 위험구역 설정 
+</details>
