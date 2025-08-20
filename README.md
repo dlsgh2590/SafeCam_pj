@@ -98,3 +98,12 @@ YOLO11 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 - 실시간 경고 기능 추가
 - 저장된 객체의 정보 박스 추가
 </details>
+
+<details>
+<summary>08.20(수)</summary>
+
+# 진행상황
+
+- [피드백 진행완료](feedback/0820.md)
+
+</details>
