@@ -4,8 +4,20 @@ import time
 from ultralytics import YOLO
 from datetime import timedelta
 
+# 하드코딩 제거 - 설정 딕셔너리
+config = {
+    "video_path": "../dd.mp4",
+    "model_path": "../yolov8n.pt",
+    "save_dir": "filtered_frames",
+    "yolo_interval": 3,
+    "danger_labels": ["person", "motorbike"],
+    "safe_labels": ["truck", "trailer", "bus", "construction vehicle", "car"],
+    "alert_text": "Warning! Intruder detected",
+    "save_text": "Intrusion Detected"
+}
+
 # YOLO 모델 로드
-model = YOLO('../yolov8n.pt')
+model = YOLO(config["model_path"])
 
 #테스트 결과
 #yolov8m.pt	중간 크기, 정확도와 속도 균형 좋음
@@ -14,11 +26,11 @@ model = YOLO('../yolov8n.pt')
 
 # 영상 경로
 ##video_path = '../ee.mp4'
-video_path = '../dd.mp4'
+video_path = config["video_path"]
 cap = cv2.VideoCapture(video_path)
 
 # 저장 폴더 생성
-os.makedirs('filtered_frames', exist_ok=True)
+os.makedirs(config["save_dir"], exist_ok=True)
 
 # 첫 프레임 읽기
 ret, current_frame = cap.read()
@@ -67,7 +79,7 @@ cv2.destroyWindow("Set Danger Zone")
 # 영상 처음부터 다시 시작
 cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-yolo_interval = 3  # 몇 프레임마다 YOLO 실행할지 설정
+yolo_interval = config["yolo_interval"]  # 몇 프레임마다 YOLO 실행할지 설정
 frame_count = 0  # 프레임 번호
 save_count = 0  # 저장된 사진 번호
 
@@ -105,9 +117,9 @@ while cap.isOpened():
 
             # 위험구역 내 판단
             if zone_x1 <= cx <= zone_x2 and zone_y1 <= cy <= zone_y2:
-                if label in ['person', 'motorbike']:
+                if label in config["danger_labels"]:
                     person_motorbike_in_zone = True
-                elif label in ['truck', 'trailer', 'bus', 'construction vehicle', 'car']:
+                elif label in config["safe_labels"]:
                     construction_vehicle_in_zone = True
 
         # 위험 침입 + 건설차량 없음일 때만 저장 & 빨간 사각형 표시
@@ -117,12 +129,12 @@ while cap.isOpened():
             current_time_ms = cap.get(cv2.CAP_PROP_POS_MSEC)
             time_str = str(timedelta(milliseconds=current_time_ms)).split('.')[0]
 
-            cv2.putText(current_frame, "Intrusion Detected", (30, 80),
+            cv2.putText(current_frame, config["save_text"], (30, 80),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
             cv2.putText(current_frame, f'Time: {time_str}', (30, 40),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-            filename = f'filtered_frames/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
+            filename = f'{config["save_dir"]}/frame_{save_count}_{time_str.replace(":", "-")}.jpg'
             cv2.imwrite(filename, current_frame)
             print(f"[Alert] Intrusion detected - photo saved: {filename}")
             save_count += 1
@@ -134,7 +146,7 @@ while cap.isOpened():
 
     # 저장된 경우에만 실시간 경고문구 표시
     if show_alert_now:
-        cv2.putText(current_frame, "Warning! Intruder detected", (30, 120),
+        cv2.putText(current_frame, config["alert_text"], (30, 120),
                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
     
     cv2.imshow("Live Detection", current_frame)  # 화면 보여주기
