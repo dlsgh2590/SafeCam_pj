@@ -22,7 +22,10 @@
    pip install ultralytics opencv-python
    ```
   
-2. YOLOv8 모델 파일(yolov8n.pt)과 분석할 비디오 파일(dd.mp4)을 프로젝트 루트에 준비합니다.
+2. YOLOv8 모델 파일(yolov8n.pt)과 분석할 비디오 파일(sample.mp4)을 프로젝트 루트에 준비합니다.
+
+- [yolov8n 다운로드](https://github.com/dlsgh2590/SafeCam_pj/blob/main/src/yolov8n.pt)
+- [sample.mp4 다운로드](https://github.com/dlsgh2590/SafeCam_pj/blob/main/src/sample.mp4)
 
 3. 아래 명령어로 프로그램을 실행합니다.
    ```bash
@@ -161,7 +164,7 @@ YOLOv8 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
    tests/             # 테스트 결과 및 저장된 이미지
    README.md            # 프로젝트 설명서 (본 파일)
    yolov8n.pt           # YOLOv8 모델 가중치 파일
-   dd.mp4               # 테스트용 CCTV 영상 파일
+   sample.mp4               # 테스트용 CCTV 영상 파일
 ``` 
 
 ---
