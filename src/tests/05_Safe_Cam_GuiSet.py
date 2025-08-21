@@ -6,7 +6,7 @@ from datetime import timedelta
 
 # 하드코딩 제거 - 설정 딕셔너리
 config = {
-    "video_path": "../dd.mp4",
+    "video_path": "../sample.mp4",
     "model_path": "../yolov8n.pt",
     "save_dir": "filtered_frames",
     "yolo_interval": 3,
