@@ -138,6 +138,18 @@ YOLOv8 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 
 </details>
 
+<details>
+<summary>08.21(목)</summary>
+
+## 진행상황
+
+- [피드백 진행완료](feedback/0821.md)
+
+- 하드코딩 제거
+- 변수명 정리
+
+</details>
+
 ---
 ## 프로젝트 폴더 구조 예시
    ```bash
