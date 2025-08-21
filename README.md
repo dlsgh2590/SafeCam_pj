@@ -31,8 +31,10 @@
 
 
 4. 실행 후 나타나는 GUI 창에서 마우스로 위험구역을 드래그하고, 's' 키를 눌러 설정을 완료합니다.
+![alt text](./assets/image.png)
 
 5. 실시간으로 영상 분석이 이루어지며, 침입 감지 시 경고 메시지 출력과 함께 해당 프레임 이미지가 자동 저장됩니다.
+![alt text](./assets/image-1.png)
 
 6. 종료는 ESC 키를 눌러 진행합니다.
 
@@ -154,4 +156,8 @@ YOLOv8 + Roboflow 커스텀 모델 → OpenCV 움직임 감지만
 ## 결과 확인 방법
 - 침입 감지 시 저장된 이미지 파일은 src/tests/filtered_frames 폴더에서 확인할 수 있습니다.
 
+![alt text](./assets/image-3.png)
+
 - 탐지 이벤트는 콘솔에 실시간으로 출력됩니다.
+
+![alt text](./assets/image-2.png)
